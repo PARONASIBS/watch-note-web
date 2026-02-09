@@ -16,15 +16,27 @@ function renderNotes() {
     const list = document.getElementById("notesList");
     list.innerHTML = "";
 
-    notes.forEach((note, index) => {
+    // Sort pinned first
+    const sortedNotes = [...notes].sort((a, b) => b.pinned - a.pinned);
+
+    sortedNotes.forEach((note) => {
+        const index = notes.indexOf(note);
+
         const div = document.createElement("div");
         div.className = "note-item";
         div.style.background = note.color;
-        div.innerText = note.title;
+
+        div.innerHTML = `
+            ${note.pinned ? "📌 " : ""}
+            ${note.title}
+        `;
+
         div.onclick = () => selectNote(index);
+
         list.appendChild(div);
     });
 }
+
 
 function selectNote(index) {
     activeIndex = index;
@@ -56,4 +68,36 @@ window.addEventListener("DOMContentLoaded", () => {
         darkToggle.checked = true;
     }
 });
+
+function deleteNote() {
+    if (activeIndex === null) return;
+
+    document.getElementById("deleteModal").style.display = "flex";
+}
+
+document.getElementById("cancelDelete").onclick = () => {
+    document.getElementById("deleteModal").style.display = "none";
+};
+
+document.getElementById("confirmDelete").onclick = () => {
+    notes.splice(activeIndex, 1);
+    activeIndex = null;
+    document.getElementById("deleteModal").style.display = "none";
+    renderNotes();
+};
+const colorPicker = document.getElementById("colorPicker");
+
+colorPicker.addEventListener("input", (e) => {
+    if (activeIndex === null) return;
+
+    notes[activeIndex].color = e.target.value;
+    renderNotes();
+});
+function togglePin() {
+    if (activeIndex === null) return;
+
+    notes[activeIndex].pinned = !notes[activeIndex].pinned;
+    renderNotes();
+}
+
 
