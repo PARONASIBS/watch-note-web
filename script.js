@@ -59,7 +59,14 @@ async function loadNotes() {
   }
 
   notes = data || [];
+
   renderNotes();
+
+  // 🔥 STEP 5 — Auto select first note
+  if (notes.length > 0) {
+    activeIndex = 0;
+    selectNote(0);
+  }
 }
 
 // ==========================
@@ -100,9 +107,17 @@ function renderNotes() {
   const list = document.getElementById("notesList");
   list.innerHTML = "";
 
-  const sortedNotes = [...notes]
-    .sort((a, b) => b.pinned - a.pinned)
-    .sort((a, b) => b.lastedited - a.lastedited);
+  const sortedNotes = [...notes].sort((a, b) => {
+
+  // Pinned first
+  if (a.pinned !== b.pinned) {
+    return b.pinned - a.pinned;
+  }
+
+  // Then sort by last edited
+  return b.lastedited - a.lastedited;
+});
+
 
   sortedNotes.forEach((note) => {
 
@@ -112,10 +127,24 @@ function renderNotes() {
     div.className = "note-item";
     div.style.background = note.color;
 
+    const formattedTime = note.lastedited
+  ? new Date(note.lastedited).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  : "";
+
+    
     div.innerHTML = `
+  <div style="display:flex; justify-content:space-between; width:100%;">
+    <span>
       ${note.pinned ? "📌 " : ""}
       ${note.title || "Untitled"}
-    `;
+    </span>
+    <small style="opacity:0.6; font-size:11px;">
+      ${formattedTime}
+    </small>
+  </div>
+`;
+
+
 
     div.onclick = () => selectNote(index);
 
@@ -280,4 +309,31 @@ document.getElementById("confirmDelete").onclick = async () => {
 
 function toggleMenu() {
   document.getElementById("menuDropdown").classList.toggle("show");
+}
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const query = e.target.value.toLowerCase();
+
+  const filtered = notes.filter(note =>
+    note.title.toLowerCase().includes(query) ||
+    note.content.toLowerCase().includes(query)
+  );
+
+  renderFilteredNotes(filtered);
+});
+function renderFilteredNotes(filteredNotes) {
+
+  const list = document.getElementById("notesList");
+  list.innerHTML = "";
+
+  filteredNotes.forEach((note) => {
+
+    const div = document.createElement("div");
+    div.className = "note-item";
+    div.style.background = note.color;
+
+    div.innerText = note.title;
+
+    list.appendChild(div);
+  });
 }
