@@ -102,12 +102,13 @@ async function addNote() {
 // RENDER NOTES
 // ==========================
 
-function renderNotes() {
+function renderNotes(customNotes = notes) {
+
 
   const list = document.getElementById("notesList");
   list.innerHTML = "";
 
-  const sortedNotes = [...notes].sort((a, b) => {
+  const sortedNotes = [...customNotes].sort((a, b) => {
 
   // Pinned first
   if (a.pinned !== b.pinned) {
@@ -312,15 +313,24 @@ function toggleMenu() {
 }
 
 document.getElementById("searchInput").addEventListener("input", (e) => {
-  const query = e.target.value.toLowerCase();
+
+  const query = e.target.value.trim().toLowerCase();
+
+  // If search box empty → show full list
+  if (query === "") {
+    renderNotes();
+    return;
+  }
 
   const filtered = notes.filter(note =>
-    note.title.toLowerCase().includes(query) ||
-    note.content.toLowerCase().includes(query)
+    (note.title || "").toLowerCase().includes(query) ||
+    (note.content || "").toLowerCase().includes(query)
   );
 
-  renderFilteredNotes(filtered);
+  renderNotes(filtered);
 });
+;
+
 function renderFilteredNotes(filteredNotes) {
 
   const list = document.getElementById("notesList");
@@ -337,3 +347,4 @@ function renderFilteredNotes(filteredNotes) {
     list.appendChild(div);
   });
 }
+
