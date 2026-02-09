@@ -353,3 +353,13 @@ input:checked + .slider:before {
   color: white;
 }
 
+.note-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-left {
+  margin-right: 6px;
+}
+
