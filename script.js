@@ -35,3 +35,25 @@ function selectNote(index) {
 function toggleMenu() {
     document.getElementById("menuDropdown").classList.toggle("show");
 }
+// Dark Mode Toggle
+const darkToggle = document.getElementById("darkToggle");
+
+darkToggle.addEventListener("change", () => {
+    document.body.classList.toggle("dark");
+
+    // Save preference
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("darkMode", "enabled");
+    } else {
+        localStorage.setItem("darkMode", "disabled");
+    }
+});
+
+// Load saved mode
+window.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+        darkToggle.checked = true;
+    }
+});
+
