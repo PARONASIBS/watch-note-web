@@ -2,12 +2,10 @@
 // SUPABASE CONFIG
 // ==========================
 
-
 const SUPABASE_URL = "https://zvwtjojfnohgteojpecz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2d3Rqb2pmbm9oZ3Rlb2pwZWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NjI4NTYsImV4cCI6MjA4NjIzODg1Nn0.Lxo2KYp8-_dWTFqxy0ALF3VecHI1NphIeoNP_zU2MT0";
 
-
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
@@ -25,7 +23,6 @@ let activeIndex = null;
 
 window.addEventListener("DOMContentLoaded", async () => {
 
-  // Dark mode restore
   const darkToggle = document.getElementById("darkToggle");
 
   if (localStorage.getItem("darkMode") === "enabled") {
@@ -35,31 +32,29 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   darkToggle.addEventListener("change", () => {
     document.body.classList.toggle("dark");
-
-    if (document.body.classList.contains("dark")) {
-      localStorage.setItem("darkMode", "enabled");
-    } else {
-      localStorage.setItem("darkMode", "disabled");
-    }
+    localStorage.setItem(
+      "darkMode",
+      document.body.classList.contains("dark") ? "enabled" : "disabled"
+    );
   });
 
-  // Load notes from Supabase
   await loadNotes();
 });
 
 // ==========================
-// LOAD NOTES FROM DATABASE
+// LOAD NOTES
 // ==========================
 
 async function loadNotes() {
-  const { data, error } = await supabase
+
+  const { data, error } = await supabaseClient
     .from("Notes")
     .select("*")
     .order("pinned", { ascending: false })
     .order("lastedited", { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error("Load error:", error);
     return;
   }
 
@@ -73,7 +68,7 @@ async function loadNotes() {
 
 async function addNote() {
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("Notes")
     .insert([
       {
@@ -87,7 +82,7 @@ async function addNote() {
     .select();
 
   if (error) {
-    console.error(error);
+    console.error("Insert error:", error);
     return;
   }
 
@@ -135,7 +130,6 @@ function renderNotes() {
 function selectNote(index) {
 
   activeIndex = index;
-
   const note = notes[index];
 
   document.getElementById("title").value = note.title;
@@ -153,11 +147,10 @@ document.getElementById("title").addEventListener("input", async (e) => {
   if (activeIndex === null) return;
 
   const note = notes[activeIndex];
-
   note.title = e.target.value;
   note.lastedited = Date.now();
 
-  await supabase
+  await supabaseClient
     .from("Notes")
     .update({
       title: note.title,
@@ -177,11 +170,10 @@ document.getElementById("content").addEventListener("input", async (e) => {
   if (activeIndex === null) return;
 
   const note = notes[activeIndex];
-
   note.content = e.target.value;
   note.lastedited = Date.now();
 
-  await supabase
+  await supabaseClient
     .from("Notes")
     .update({
       content: note.content,
@@ -200,7 +192,7 @@ async function togglePin() {
 
   const note = notes[activeIndex];
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from("Notes")
     .update({
       pinned: !note.pinned,
@@ -221,7 +213,6 @@ async function togglePin() {
 function updatePinButton() {
 
   const pinBtn = document.getElementById("pinBtn");
-
   if (activeIndex === null) return;
 
   pinBtn.innerText = notes[activeIndex].pinned
@@ -238,15 +229,13 @@ document.getElementById("colorPicker").addEventListener("input", async (e) => {
   if (activeIndex === null) return;
 
   const note = notes[activeIndex];
-  const newColor = e.target.value;
-
-  note.color = newColor;
+  note.color = e.target.value;
   note.lastedited = Date.now();
 
-  await supabase
+  await supabaseClient
     .from("Notes")
     .update({
-      color: newColor,
+      color: note.color,
       lastedited: note.lastedited
     })
     .eq("id", note.id);
@@ -259,9 +248,7 @@ document.getElementById("colorPicker").addEventListener("input", async (e) => {
 // ==========================
 
 function deleteNote() {
-
   if (activeIndex === null) return;
-
   document.getElementById("deleteModal").style.display = "flex";
 }
 
@@ -275,7 +262,7 @@ document.getElementById("confirmDelete").onclick = async () => {
 
   const noteId = notes[activeIndex].id;
 
-  await supabase
+  await supabaseClient
     .from("Notes")
     .delete()
     .eq("id", noteId);
@@ -284,7 +271,6 @@ document.getElementById("confirmDelete").onclick = async () => {
   activeIndex = null;
 
   document.getElementById("deleteModal").style.display = "none";
-
   renderNotes();
 };
 
