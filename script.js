@@ -6,6 +6,7 @@
 const SUPABASE_URL = "https://zvwtjojfnohgteojpecz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2d3Rqb2pmbm9oZ3Rlb2pwZWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NjI4NTYsImV4cCI6MjA4NjIzODg1Nn0.Lxo2KYp8-_dWTFqxy0ALF3VecHI1NphIeoNP_zU2MT0";
 
+
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
@@ -19,7 +20,7 @@ let notes = [];
 let activeIndex = null;
 
 // ==========================
-// LOAD NOTES FROM DATABASE
+// LOAD ON START
 // ==========================
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -42,7 +43,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Load notes
+  // Load notes from Supabase
+  await loadNotes();
+});
+
+// ==========================
+// LOAD NOTES FROM DATABASE
+// ==========================
+
+async function loadNotes() {
   const { data, error } = await supabase
     .from("Notes")
     .select("*")
@@ -56,7 +65,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   notes = data || [];
   renderNotes();
-});
+}
 
 // ==========================
 // ADD NOTE
@@ -64,17 +73,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function addNote() {
 
-  const newNote = {
-    title: "New Note",
-    content: "",
-    color: "#8ecae6",
-    pinned: false,
-    lastedited: Date.now()
-  };
-
   const { data, error } = await supabase
     .from("Notes")
-    .insert([newNote])
+    .insert([
+      {
+        title: "New Note",
+        content: "",
+        color: "#8ecae6",
+        pinned: false,
+        lastedited: Date.now()
+      }
+    ])
     .select();
 
   if (error) {
@@ -83,6 +92,7 @@ async function addNote() {
   }
 
   notes.unshift(data[0]);
+  activeIndex = 0;
   renderNotes();
 }
 
@@ -192,7 +202,10 @@ async function togglePin() {
 
   const { error } = await supabase
     .from("Notes")
-    .update({ pinned: !note.pinned })
+    .update({
+      pinned: !note.pinned,
+      lastedited: Date.now()
+    })
     .eq("id", note.id);
 
   if (error) {
@@ -211,11 +224,9 @@ function updatePinButton() {
 
   if (activeIndex === null) return;
 
-  if (notes[activeIndex].pinned) {
-    pinBtn.innerText = "📌 Unpin";
-  } else {
-    pinBtn.innerText = "📌 Pin";
-  }
+  pinBtn.innerText = notes[activeIndex].pinned
+    ? "📌 Unpin"
+    : "📌 Pin";
 }
 
 // ==========================
@@ -227,14 +238,15 @@ document.getElementById("colorPicker").addEventListener("input", async (e) => {
   if (activeIndex === null) return;
 
   const note = notes[activeIndex];
+  const newColor = e.target.value;
 
-  note.color = e.target.value;
+  note.color = newColor;
   note.lastedited = Date.now();
 
   await supabase
     .from("Notes")
     .update({
-      color: note.color,
+      color: newColor,
       lastedited: note.lastedited
     })
     .eq("id", note.id);
@@ -259,17 +271,14 @@ document.getElementById("cancelDelete").onclick = () => {
 
 document.getElementById("confirmDelete").onclick = async () => {
 
-  const note = notes[activeIndex];
+  if (activeIndex === null) return;
 
-  const { error } = await supabase
+  const noteId = notes[activeIndex].id;
+
+  await supabase
     .from("Notes")
     .delete()
-    .eq("id", note.id);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
+    .eq("id", noteId);
 
   notes.splice(activeIndex, 1);
   activeIndex = null;
