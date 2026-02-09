@@ -40,9 +40,13 @@ function renderNotes() {
 
 function selectNote(index) {
     activeIndex = index;
+
     document.getElementById("title").value = notes[index].title;
     document.getElementById("content").value = notes[index].content;
+
+    updatePinButton();  
 }
+
 
 function toggleMenu() {
     document.getElementById("menuDropdown").classList.toggle("show");
@@ -97,7 +101,22 @@ function togglePin() {
     if (activeIndex === null) return;
 
     notes[activeIndex].pinned = !notes[activeIndex].pinned;
+
+    updatePinButton();
     renderNotes();
 }
+function updatePinButton() {
+    const pinBtn = document.getElementById("pinBtn");
+
+    if (activeIndex === null) return;
+
+    if (notes[activeIndex].pinned) {
+        pinBtn.innerText = "📌 Unpin";
+    } else {
+        pinBtn.innerText = "📌 Pin";
+    }
+}
+
+
 
 
