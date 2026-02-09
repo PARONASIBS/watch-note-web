@@ -2,24 +2,63 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Watch Note Web</title>
+  <title>Watch Note</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-  
+
+  <!-- Sidebar -->
   <div class="sidebar">
     <h2>Watch Note</h2>
     <button onclick="addNote()">+ New Note</button>
     <div id="notesList"></div>
   </div>
 
+  <!-- Editor -->
   <div class="editor">
-    <input id="title" placeholder="Title">
+
+    <div class="editor-header">
+      <input id="title" placeholder="">
+
+      <div class="header-actions">
+
+        <!-- Dark Mode Toggle -->
+        <label class="switch">
+          <input type="checkbox" id="darkToggle">
+          <span class="slider"></span>
+        </label>
+
+        <!-- 3 Dot Menu -->
+        <div class="menu">
+          <button onclick="toggleMenu()">⋮</button>
+          <div id="menuDropdown" class="menu-dropdown">
+            <button onclick="togglePin()">📌 Pin</button>
+            <input type="color" id="colorPicker">
+            <button onclick="deleteNote()">🗑 Delete</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <textarea id="content" placeholder="Write your note..."></textarea>
+
   </div>
 
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Delete Note</h3>
+    <p>Are you sure you want to delete this note?</p>
+    <div class="modal-actions">
+      <button id="cancelDelete">Cancel</button>
+      <button id="confirmDelete" class="danger">Delete</button>
+    </div>
+  </div>
 </div>
 
 <script src="script.js"></script>
